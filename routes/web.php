@@ -11,6 +11,5 @@
 |
 */
 
-Route::get('/', function () {
-    return view('welcome');
-});
+Route::get('/', 'Welcome@welcome')->name('welcome');
+Route::get('/csv/case1', 'Welcome@downloadCsvCase1')->name('downloadCsvCase1');
