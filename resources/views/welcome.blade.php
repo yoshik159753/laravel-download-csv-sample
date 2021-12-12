@@ -42,8 +42,8 @@
 
         <div class="row buttons">
           <div class="col">
-            <a class="btn btn-primary" href="{{ route('downloadCsvCase1') }}" role="button">DL CSV Case1</a>
-            <a class="btn btn-primary" href="{{ route('downloadCsvCase2') }}" role="button">DL CSV Case2</a>
+            <a class="btn btn-primary downloadCsv" href="{{ route('downloadCsvCase1') }}" role="button">DL CSV Case1</a>
+            <a class="btn btn-primary downloadCsv" href="{{ route('downloadCsvCase2') }}" role="button">DL CSV Case2</a>
             <a class="btn btn-primary downloadCsv" href="{{ route('downloadCsvCase3') }}" role="button">DL CSV Case3</a>
           </div>
         </div>

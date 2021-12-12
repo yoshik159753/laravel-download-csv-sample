@@ -23,21 +23,7 @@ class Welcome extends Controller
     public function downloadCsvCase1()
     {
         $query = Child::join('parents', 'children.parent', 'parents.id')
-            ->select([
-                'children.id as child_id',
-                'children.name as child_name',
-                'children.kana as child_kana',
-                'children.sex as child_sex',
-                'children.birthday as child_birthday',
-                'parents.id as parent_id',
-                'parents.name as parent_name',
-                'parents.kana as parent_kana',
-                'parents.sex as parent_sex',
-                'parents.zip as zip',
-                'parents.address as address',
-                'parents.tel as tel',
-                'parents.email as email',
-            ])
+            ->select($this->selectBaseItems())
             ->orderby('children.id', 'asc');
         $families = $query->get();
 
@@ -49,24 +35,7 @@ class Welcome extends Controller
         $outputCsv = storage_path('app/'.$workspace.'/'.$filename);
 
         $fp = fopen($outputCsv, 'w');
-        fputcsv($fp, [
-            '子ID',
-            '子氏名',
-            '子氏名ｶﾅ',
-            '子性別',
-            '子生年月日',
-            '所属クラス1',
-            '所属クラス2',
-            '所属クラス3',
-            '親ID',
-            '親氏名',
-            '親氏名ｶﾅ',
-            '親性別',
-            '郵便番号',
-            '住所',
-            '電話番号',
-            'Eメールアドレス',
-        ]);
+        fputcsv($fp, $this->header());
         foreach ($families as $family) {
             $query = ChildToClass::join('class', 'child_to_class.class_id', 'class.id')
                 ->where('child_to_class.child_id', '=', $family->child_id);
@@ -104,23 +73,8 @@ class Welcome extends Controller
     public function downloadCsvCase2()
     {
         $query = Child::join('parents', 'children.parent', 'parents.id')
-            ->select([
-                'children.id as child_id',
-                'children.name as child_name',
-                'children.kana as child_kana',
-                'children.sex as child_sex',
-                'children.birthday as child_birthday',
-                'parents.id as parent_id',
-                'parents.name as parent_name',
-                'parents.kana as parent_kana',
-                'parents.sex as parent_sex',
-                'parents.zip as zip',
-                'parents.address as address',
-                'parents.tel as tel',
-                'parents.email as email',
-            ])
+            ->select($this->selectBaseItems())
             ->orderby('children.id', 'asc');
-        // $families = $query->get();
 
         $now = \now();
         $nowYyyyMmDdHhMmSs = $now->format('Ymd-His');
@@ -130,24 +84,7 @@ class Welcome extends Controller
         $outputCsv = storage_path('app/'.$workspace.'/'.$filename);
 
         $fp = fopen($outputCsv, 'w');
-        fputcsv($fp, [
-            '子ID',
-            '子氏名',
-            '子氏名ｶﾅ',
-            '子性別',
-            '子生年月日',
-            '所属クラス1',
-            '所属クラス2',
-            '所属クラス3',
-            '親ID',
-            '親氏名',
-            '親氏名ｶﾅ',
-            '親性別',
-            '郵便番号',
-            '住所',
-            '電話番号',
-            'Eメールアドレス',
-        ]);
+        fputcsv($fp, $this->header());
         foreach ($query->cursor() as $family) {
             $query = ChildToClass::join('class', 'child_to_class.class_id', 'class.id')
                 ->where('child_to_class.child_id', '=', $family->child_id);
