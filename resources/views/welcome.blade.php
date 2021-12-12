@@ -4,6 +4,28 @@
 <head>
   <title>Laravel Download CSV SamplePJ</title>
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
+  <style>
+    #loading {
+      /* ロード中の全画面操作抑止用クラス */
+      display: table;
+      width: 100%;
+      height: 100%;
+      position: fixed;
+      top: 0;
+      left: 0;
+      background-color: #fff;
+      opacity: 0.8;
+    }
+
+    #loading .loadingMsg {
+      /* ロード中の全画面操作抑止用クラス */
+      display: table-cell;
+      text-align: center;
+      vertical-align: middle;
+      padding-top: 140px;
+      background: url("/images/loading.gif") center center no-repeat;
+    }
+  </style>
 </head>
 
 <body class="d-flex flex-column h-100">
@@ -22,6 +44,7 @@
           <div class="col">
             <a class="btn btn-primary" href="{{ route('downloadCsvCase1') }}" role="button">DL CSV Case1</a>
             <a class="btn btn-primary" href="{{ route('downloadCsvCase2') }}" role="button">DL CSV Case2</a>
+            <a class="btn btn-primary downloadCsv" href="{{ route('downloadCsvCase3') }}" role="button">DL CSV Case3</a>
           </div>
         </div>
 
@@ -124,6 +147,29 @@
     window.jQuery || document.write('<script src="/docs/4.5/assets/js/vendor/jquery-slim.min.js"><\/script>')
   </script>
   <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.bundle.min.js"></script>
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/js-cookie@3.0.1/dist/js.cookie.min.js"></script>
+  <script type="text/javascript">
+    $('a.downloadCsv').on('click', function () {
+      console.time('timerKeyDownloadCsv');
+      // 開始前に監視対象の cookie をクリア
+      Cookies.remove('watchKeyDownloadCsv')
+      // ローディング表示
+      $("body").append("<div id='loading'><div class='loadingMsg'></div></div>");
+      // 100ms による setInterval
+      var intervalId = setInterval(function () {
+        // 期待する cookie が存在するか watch
+        if (Cookies.get('watchKeyDownloadCsv')) {
+          console.timeEnd('timerKeyDownloadCsv');
+          // cookie が存在する場合は処理完了としてローディング画面を止める
+          $("#loading").remove();
+          // intervalの処理を止める
+          clearInterval(intervalId);
+          // 受け取った cookie をクリア
+          Cookies.remove('watchKeyDownloadCsv')
+        }
+      }, 100);
+    });
+  </script>
 </body>
 
 </html>
