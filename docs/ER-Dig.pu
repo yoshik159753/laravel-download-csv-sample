@@ -1,0 +1,52 @@
+@startuml テーブル構成
+
+hide circle
+
+skinparam linetype ortho
+
+' 記載例:
+' entity "テーブル名" as table_name {
+'   プライマリキー
+'   --
+'   プライマリキー以外
+' }
+
+entity "親" as parents {
+  * ID : number <<generated>>
+}
+
+entity "子" as children {
+  * ID : number <<generated>>
+  --
+  * 親TのID : number <<FK>>
+}
+
+entity "所属クラス定義" as class_def {
+  * ID : number <<generated>>
+  --
+  * クラス名 : string
+}
+
+entity "所属クラス" as classes {
+  * ID : number <<generated>>
+  --
+  * 所属クラス定義TのID : number <<FK>>
+  * 子TのID : number <<FK>>
+}
+note left: 子は３つのクラスに\n所属できる
+
+' Entity01 }|..|| Entity02 破線
+' Entity03 }o..o| Entity04
+' Entity05 ||--o{ Entity06 実線
+' Entity07 |o--|| Entity08
+
+' 0か1	|o--
+' 1のみ	||--
+' 0以上	}o--
+' 1以上	}|--
+
+parents ||--|| children
+children ||--|{ classes
+class_def ||--o{ classes
+
+@enduml
