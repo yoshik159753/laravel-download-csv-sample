@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cookie;
+use Illuminate\Support\Facades\Response;
 use App\Models\Child;
 use App\Models\ParentModel as ParentModel;
 use App\Models\ChildToClass;
@@ -234,6 +235,54 @@ class Welcome extends Controller
         // js 側で watch するため httponly を false にする
         Cookie::queue("watchKeyDownloadCsv", "true", 0, "", "", false, false);
         return response()->download($outputCsv, $filename);
+    }
+
+    public function downloadCsvCase4()
+    {
+        $query = Child::join('parents', 'children.parent', 'parents.id')
+            ->join('child_to_class', 'children.id', 'child_to_class.child_id')
+            ->join('class', 'child_to_class.class_id', 'class.id');
+        $selectBaseItems = array_merge(
+            $this->selectBaseItems(),
+            [DB::raw('GROUP_CONCAT(class.name) AS class_names')]
+        );
+        $query->select($selectBaseItems)
+            ->groupby('children.id')
+            ->orderby('children.id', 'asc');
+
+        $filename = 'families.csv';
+
+        $fp = fopen('php://temp', 'r+b');
+        fputcsv($fp, $this->header());
+        foreach ($query->cursor() as $family) {
+            fputcsv($fp, [
+                $family->child_id,
+                $family->child_name,
+                $family->child_kana,
+                $family->child_sex,
+                $family->child_birthday,
+                explode(',', $family->class_names)[0] ?? null,
+                explode(',', $family->class_names)[1] ?? null,
+                explode(',', $family->class_names)[2] ?? null,
+                $family->parent_id,
+                $family->parent_name,
+                $family->parent_kana,
+                $family->parent_sex,
+                $family->zip,
+                $family->address,
+                $family->tel,
+                $family->email,
+            ]);
+        }
+        rewind($fp);
+        $buffer = str_replace(PHP_EOL, "\r\n", stream_get_contents($fp));
+        $buffer = mb_convert_encoding($buffer, 'SJIS-win', 'UTF-8');
+
+        Cookie::queue("watchKeyDownloadCsv", "true", 0, "", "", false, false);
+        return Response::make($buffer, 200, [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="'.$filename.'"',
+        ]);
     }
 
     public function selectBaseItems()
