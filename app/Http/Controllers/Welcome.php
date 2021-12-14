@@ -140,7 +140,7 @@ class Welcome extends Controller
         $filename = 'families.csv';
         $outputCsv = storage_path('app/'.$workspace.'/'.$filename);
 
-        $fp = fopen($outputCsv, 'w');
+        $fp = fopen($outputCsv, 'w+');
         fputcsv($fp, $this->header());
         foreach ($query->cursor() as $family) {
             fputcsv($fp, [
@@ -162,10 +162,14 @@ class Welcome extends Controller
                 $family->email,
             ]);
         }
+        // 強制書き込み
+        fflush($fp);
         rewind($fp);
         $buffer = str_replace(PHP_EOL, "\r\n", stream_get_contents($fp));
         $buffer = mb_convert_encoding($buffer, 'SJIS-win', 'UTF-8');
         rewind($fp);
+        // クリア後に改行コードとエンコードを変更したデータを書き込む
+        ftruncate($fp, 0);
         fwrite($fp, $buffer);
         fclose($fp);
 
