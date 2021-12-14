@@ -226,6 +226,53 @@ class Welcome extends Controller
         ]);
     }
 
+    public function downloadCsvCase5()
+    {
+        $query = Child::join('parents', 'children.parent', 'parents.id')
+            ->join('child_to_class', 'children.id', 'child_to_class.child_id')
+            ->join('class', 'child_to_class.class_id', 'class.id');
+        $selectBaseItems = array_merge(
+            $this->selectBaseItems(),
+            [DB::raw('GROUP_CONCAT(class.name) AS class_names')]
+        );
+        $query->select($selectBaseItems)
+            ->groupby('children.id')
+            ->orderby('children.id', 'asc');
+
+        $now = \now();
+        $nowYyyyMmDdHhMmSs = $now->format('Ymd-His');
+        $workspace = 'tmp/'.$nowYyyyMmDdHhMmSs;
+        Storage::disk('local')->makeDirectory($workspace);
+        $filename = 'families.csv';
+        $outputCsv = storage_path('app/'.$workspace.'/'.$filename);
+
+        $csvWriter = $this->csvWriter($outputCsv);
+        $csvWriter->insertOne($this->header());
+        foreach ($query->cursor() as $family) {
+            $csvWriter->insertOne([
+                $family->child_id,
+                $family->child_name,
+                $family->child_kana,
+                $family->child_sex,
+                $family->child_birthday,
+                explode(',', $family->class_names)[0] ?? null,
+                explode(',', $family->class_names)[1] ?? null,
+                explode(',', $family->class_names)[2] ?? null,
+                $family->parent_id,
+                $family->parent_name,
+                $family->parent_kana,
+                $family->parent_sex,
+                $family->zip,
+                $family->address,
+                $family->tel,
+                $family->email,
+            ]);
+        }
+
+        Cookie::queue("watchKeyDownloadCsv", "true", 0, "", "", false, false);
+        return response()->download($outputCsv, $filename);
+    }
+
     public function selectBaseItems()
     {
         return [
@@ -265,5 +312,22 @@ class Welcome extends Controller
             '電話番号',
             'Eメールアドレス',
         ];
+    }
+
+    function csvWriter($path)
+    {
+        $csvWriter = \League\Csv\Writer::createFromPath($path, 'w+');
+
+        $csvWriter->setDelimiter(",");
+        $csvWriter->setEnclosure('"');
+        $csvWriter->setEscape("\\");
+        $csvWriter->setNewline("\r\n");
+
+        $converter = (new \League\Csv\CharsetConverter())
+            ->inputEncoding('UTF-8')
+            ->outputEncoding('SJIS-win');
+        $csvWriter->addFormatter($converter);
+
+        return $csvWriter;
     }
 }
