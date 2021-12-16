@@ -47,6 +47,7 @@
             <a class="btn btn-primary downloadCsv" href="{{ route('downloadCsvCase3') }}" role="button">DL CSV Case3</a>
             <a class="btn btn-primary downloadCsv" href="{{ route('downloadCsvCase4') }}" role="button">DL CSV Case4</a>
             <a class="btn btn-primary downloadCsv" href="{{ route('downloadCsvCase5') }}" role="button">DL CSV Case5</a>
+            <a class="btn btn-primary downloadCsv" href="{{ route('downloadCsvCase6') }}" role="button">DL CSV Case6</a>
           </div>
         </div>
 

@@ -17,3 +17,4 @@ Route::get('/csv/case2', 'Welcome@downloadCsvCase2')->name('downloadCsvCase2');
 Route::get('/csv/case3', 'Welcome@downloadCsvCase3')->name('downloadCsvCase3');
 Route::get('/csv/case4', 'Welcome@downloadCsvCase4')->name('downloadCsvCase4');
 Route::get('/csv/case5', 'Welcome@downloadCsvCase5')->name('downloadCsvCase5');
+Route::get('/csv/case6', 'Welcome@downloadCsvCase6')->name('downloadCsvCase6');
