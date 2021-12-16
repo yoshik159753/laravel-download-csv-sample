@@ -332,6 +332,45 @@ class Welcome extends Controller
         return response()->download($outputCsv, $filename);
     }
 
+    public function downloadCsvCase6()
+    {
+        $query = Child::join('parents', 'children.parent', 'parents.id')
+            ->join('child_to_class', 'children.id', 'child_to_class.child_id')
+            ->join('class', 'child_to_class.class_id', 'class.id');
+        $selectBaseItems = array_merge(
+            $this->selectBaseItems(),
+            [DB::raw('GROUP_CONCAT(class.name) AS class_names')]
+        );
+        $query->select($selectBaseItems)
+            ->groupby('children.id')
+            ->orderby('children.id', 'asc');
+
+        $now = \now();
+        $nowYyyyMmDdHhMmSs = $now->format('Ymd-His');
+        $workspace = 'tmp/'.$nowYyyyMmDdHhMmSs;
+        Storage::disk('local')->makeDirectory($workspace);
+        $filename = 'families.csv';
+        $outputCsv = storage_path('app/'.$workspace.'/'.$filename);
+
+        $csvWriter = $this->csvWriter($outputCsv);
+        $csvWriter->insertOne($this->header());
+
+        $records = [];
+        foreach ($query->cursor() as $family) {
+            $records[] = $this->familyToColumn($family);
+            if (count($records) >= 10000) {
+                $csvWriter->insertAll($records);
+                $records = [];
+            }
+        }
+        if (count($records) > 0) {
+            $csvWriter->insertAll($records);
+        }
+
+        Cookie::queue("watchKeyDownloadCsv", "true", 0, "", "", false, false);
+        return response()->download($outputCsv, $filename);
+    }
+
     public function selectBaseItems()
     {
         return [
@@ -388,5 +427,27 @@ class Welcome extends Controller
         $csvWriter->addFormatter($converter);
 
         return $csvWriter;
+    }
+
+    function familyToColumn($family)
+    {
+        return [
+            $family->child_id,
+            $family->child_name,
+            $family->child_kana,
+            $family->child_sex,
+            $family->child_birthday,
+            explode(',', $family->class_names)[0] ?? null,
+            explode(',', $family->class_names)[1] ?? null,
+            explode(',', $family->class_names)[2] ?? null,
+            $family->parent_id,
+            $family->parent_name,
+            $family->parent_kana,
+            $family->parent_sex,
+            $family->zip,
+            $family->address,
+            $family->tel,
+            $family->email,
+        ];
     }
 }
