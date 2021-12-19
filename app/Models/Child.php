@@ -34,6 +34,11 @@ class Child extends Model
      */
     public $timestamps = true;
 
+    public function toParent()
+    {
+        return $this->belongsTo('App\Models\ParentModel', 'parent', 'id');
+    }
+
     public function classes()
     {
         return $this->hasMany('App\Models\ChildToClass', 'child_id', 'id');
