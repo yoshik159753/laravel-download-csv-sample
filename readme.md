@@ -1,5 +1,9 @@
 # Laravel で CSV ダウンロードを試すサンプル PJ
 
+## What is this?
+
+[この記事](https://zenn.dev/yoshik159753/articles/26faefa6b906b2) の検証用ソースです。
+
 ## Usage
 
 ### mysql を用意

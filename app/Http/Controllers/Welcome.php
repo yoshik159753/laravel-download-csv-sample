@@ -143,24 +143,7 @@ class Welcome extends Controller
         $fp = fopen($outputCsv, 'w+');
         fputcsv($fp, $this->header());
         foreach ($query->cursor() as $family) {
-            fputcsv($fp, [
-                $family->child_id,
-                $family->child_name,
-                $family->child_kana,
-                $family->child_sex,
-                $family->child_birthday,
-                explode(',', $family->class_names)[0] ?? null,
-                explode(',', $family->class_names)[1] ?? null,
-                explode(',', $family->class_names)[2] ?? null,
-                $family->parent_id,
-                $family->parent_name,
-                $family->parent_kana,
-                $family->parent_sex,
-                $family->zip,
-                $family->address,
-                $family->tel,
-                $family->email,
-            ]);
+            fputcsv($fp, $this->familyToColumn($family));
         }
         // 強制書き込み
         fflush($fp);
@@ -196,24 +179,7 @@ class Welcome extends Controller
         $fp = fopen('php://temp', 'r+b');
         fputcsv($fp, $this->header());
         foreach ($query->cursor() as $family) {
-            fputcsv($fp, [
-                $family->child_id,
-                $family->child_name,
-                $family->child_kana,
-                $family->child_sex,
-                $family->child_birthday,
-                explode(',', $family->class_names)[0] ?? null,
-                explode(',', $family->class_names)[1] ?? null,
-                explode(',', $family->class_names)[2] ?? null,
-                $family->parent_id,
-                $family->parent_name,
-                $family->parent_kana,
-                $family->parent_sex,
-                $family->zip,
-                $family->address,
-                $family->tel,
-                $family->email,
-            ]);
+            fputcsv($fp, $this->familyToColumn($family));
         }
         rewind($fp);
         $buffer = str_replace(PHP_EOL, "\r\n", stream_get_contents($fp));
@@ -249,24 +215,7 @@ class Welcome extends Controller
         $csvWriter = $this->csvWriter($outputCsv);
         $csvWriter->insertOne($this->header());
         foreach ($query->cursor() as $family) {
-            $csvWriter->insertOne([
-                $family->child_id,
-                $family->child_name,
-                $family->child_kana,
-                $family->child_sex,
-                $family->child_birthday,
-                explode(',', $family->class_names)[0] ?? null,
-                explode(',', $family->class_names)[1] ?? null,
-                explode(',', $family->class_names)[2] ?? null,
-                $family->parent_id,
-                $family->parent_name,
-                $family->parent_kana,
-                $family->parent_sex,
-                $family->zip,
-                $family->address,
-                $family->tel,
-                $family->email,
-            ]);
+            $csvWriter->insertOne($this->familyToColumn($family));
         }
 
         Cookie::queue("watchKeyDownloadCsv", "true", 0, "", "", false, false);
