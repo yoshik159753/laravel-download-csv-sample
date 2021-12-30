@@ -529,8 +529,6 @@ class Welcome extends Controller
 
         $fp = fopen($outputCsv, 'w+');
         fputcsv($fp, $this->header());
-        fclose($fp);
-
         $query->chunk(10000, function ($children) use (&$fp) {
             foreach ($children as $child) {
                 $classes = $child->classes;
