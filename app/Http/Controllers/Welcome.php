@@ -406,6 +406,57 @@ class Welcome extends Controller
         return response()->download($outputCsv, $filename);
     }
 
+    public function downloadCsvCase10()
+    {
+        $query = Child::with('classes.class')->orderby('children.id', 'asc');
+
+        $now = \now();
+        $nowYyyyMmDdHhMmSs = $now->format('Ymd-His');
+        $workspace = 'tmp/'.$nowYyyyMmDdHhMmSs;
+        Storage::disk('local')->makeDirectory($workspace);
+        $filename = 'families.csv';
+        $outputCsv = storage_path('app/'.$workspace.'/'.$filename);
+
+        $fp = fopen($outputCsv, 'w+');
+        fputcsv($fp, $this->header());
+        $query->chunk(10000, function ($children) use (&$fp) {
+            foreach ($children as $child) {
+                $classes = $child->classes;
+                fputcsv($fp, [
+                    $child->id,
+                    $child->name,
+                    $child->kana,
+                    $child->sex,
+                    $child->birthday,
+                    $classes->get(0)->class->name ?? null,
+                    $classes->get(1)->class->name ?? null,
+                    $classes->get(2)->class->name ?? null,
+                    $child->toParent->id,
+                    $child->toParent->name,
+                    $child->toParent->kana,
+                    $child->toParent->sex,
+                    $child->toParent->zip,
+                    $child->toParent->address,
+                    $child->toParent->tel,
+                    $child->toParent->email,
+                ]);
+            }
+        });
+        // 強制書き込み
+        fflush($fp);
+        rewind($fp);
+        $buffer = str_replace(PHP_EOL, "\r\n", stream_get_contents($fp));
+        $buffer = mb_convert_encoding($buffer, 'SJIS-win', 'UTF-8');
+        rewind($fp);
+        // クリア後に改行コードとエンコードを変更したデータを書き込む
+        ftruncate($fp, 0);
+        fwrite($fp, $buffer);
+        fclose($fp);
+
+        Cookie::queue("watchKeyDownloadCsv", "true", 0, "", "", false, false);
+        return response()->download($outputCsv, $filename);
+    }
+
     public function selectBaseItems()
     {
         return [
