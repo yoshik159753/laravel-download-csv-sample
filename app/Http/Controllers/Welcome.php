@@ -357,7 +357,7 @@ class Welcome extends Controller
 
     public function downloadCsvCase9()
     {
-        $query = Child::with('classes.class')->orderby('children.id', 'asc');
+        $query = Child::with('classes')->orderby('children.id', 'asc');
 
         $now = \now();
         $nowYyyyMmDdHhMmSs = $now->format('Ymd-His');
