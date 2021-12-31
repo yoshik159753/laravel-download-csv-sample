@@ -457,6 +457,55 @@ class Welcome extends Controller
         return response()->download($outputCsv, $filename);
     }
 
+    public function downloadCsvCaseZ1()
+    {
+        $query = Child::with('classes.class')->orderby('children.id', 'asc');
+
+        $csvWriter = $this->csvWriter('php://temp');
+        $csvWriter->insertOne($this->header());
+
+        $query->chunk(10000, function ($children) use ($csvWriter) {
+            foreach ($children as $child) {
+                $csvWriter->insertOne($this->childToColumn($child));
+            }
+        });
+
+        Cookie::queue("watchKeyDownloadCsv", "true", 0, "", "", false, false);
+        return Response::make($csvWriter->getContent(), 200, [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename=families.csv',
+        ]);
+    }
+
+    public function downloadCsvCaseZ2()
+    {
+        $query = Child::join('parents', 'children.parent', 'parents.id')
+            ->join('child_to_class', 'children.id', 'child_to_class.child_id')
+            ->join('class', 'child_to_class.class_id', 'class.id');
+        $selectBaseItems = array_merge(
+            $this->selectBaseItems(),
+            [DB::raw('GROUP_CONCAT(class.name) AS class_names')]
+        );
+        $query->select($selectBaseItems)
+            ->groupby('children.id')
+            ->orderby('children.id', 'asc');
+
+        $csvWriter = $this->csvWriter('php://temp');
+        $csvWriter->insertOne($this->header());
+
+        $query->chunk(10000, function ($familes) use ($csvWriter) {
+            foreach ($familes as $family) {
+                $csvWriter->insertOne($this->familyToColumn($family));
+            }
+        });
+
+        Cookie::queue("watchKeyDownloadCsv", "true", 0, "", "", false, false);
+        return Response::make($csvWriter->getContent(), 200, [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename=families.csv',
+        ]);
+    }
+
     public function selectBaseItems()
     {
         return [
@@ -534,6 +583,29 @@ class Welcome extends Controller
             $family->address,
             $family->tel,
             $family->email,
+        ];
+    }
+
+    function childToColumn($child)
+    {
+        $classes = $child->classes;
+        return [
+            $child->id,
+            $child->name,
+            $child->kana,
+            $child->sex,
+            $child->birthday,
+            $classes->get(0)->class->name ?? null,
+            $classes->get(1)->class->name ?? null,
+            $classes->get(2)->class->name ?? null,
+            $child->toParent->id,
+            $child->toParent->name,
+            $child->toParent->kana,
+            $child->toParent->sex,
+            $child->toParent->zip,
+            $child->toParent->address,
+            $child->toParent->tel,
+            $child->toParent->email,
         ];
     }
 }
