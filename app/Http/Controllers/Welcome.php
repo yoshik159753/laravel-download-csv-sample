@@ -493,11 +493,9 @@ class Welcome extends Controller
         $csvWriter = $this->csvWriter('php://temp');
         $csvWriter->insertOne($this->header());
 
-        $query->chunk(10000, function ($familes) use ($csvWriter) {
-            foreach ($familes as $family) {
-                $csvWriter->insertOne($this->familyToColumn($family));
-            }
-        });
+        foreach ($query->cursor() as $family) {
+            $csvWriter->insertOne($this->familyToColumn($family));
+        }
 
         Cookie::queue("watchKeyDownloadCsv", "true", 0, "", "", false, false);
         return Response::make($csvWriter->getContent(), 200, [
